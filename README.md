@@ -1,113 +1,44 @@
-# Yeastar SMS → Telegram
+# Yeastar SMS Listener
 
-Проект для автоматической пересылки SMS с GSM-шлюзов Yeastar TG2000/TG400 в Telegram.
+Проект для прослушки SMS на шлюзах Yeastar через AMI, с отправкой в Telegram.
 
----
+## Особенности
+- Слушает входящие SMS на всех портах
+- Декодирует URL-encoded текст (BOM, кириллица, emoji)
+- Сопоставляет GsmSpan с номером SIM
+- Отправляет в Telegram
+- Логирует все SMS в папку `logs/`
 
-## Описание
-
-* Приходит SMS на шлюз Yeastar
-* Через API/AMI TCP (порт 5038) скрипт получает событие `ReceivedSMS`
-* Декодирует текст (URL-декодирование)
-* Определяет SIM-карту (порт шлюза)
-* Отправляет SMS в Telegram-чат через бота
-
----
-
-## Быстрый старт
-
-1. **Клонируем проект**
-
+## Установка
+1. Клонируем репозиторий:
 ```bash
-git clone https://github.com/LynchDeSanto/YeaStar-sms-to-TG.git
-cd YeaStar-sms-to-TG
+git clone https://github.com/ТВОЙ_НИК/yeastar-sms-listener.git
+cd yeastar-sms-listener
 ```
-
-2. **Создаем виртуальное окружение и устанавливаем зависимости**
-
+2. Создаем виртуальное окружение:
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+.venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
-
-3. **Создаем файл `.env`**  
-
-Пример данных:
-
-```env
-YEASTAR_ADDRESS=192.168.88.20
+3. Создаём .env с настройками:
+```
+YEASTAR_ADDRESS=IP
 API_USER=apiuser
 API_PASSWORD=apipass
-TG_TOKEN=123456789:ABC-XYZ
-TG_CHAT=-1001234567890
+TG_TOKEN=твой_телеграм_токен
+TG_CHAT=твой_chat_id
 ```
-
-4. **Проверяем работу вручную**
-
+4. Запуск скрипта:
 ```bash
 python main.py
 ```
 
-В консоли должно появиться:
-
+Настройка портов
+В main.py обновите словарь PORT_SIM_MAP для сопоставления GsmSpan и номеров SIM:
 ```
-[+] Подключено к Yeastar API. Ожидание новых SMS...
+PORT_SIM_MAP = {
+    "2": "+39110010396",
+    "3": "+79110010397",
+}
 ```
-
----
-
-## Автозапуск на Linux (systemd)
-
-1. Создайте сервис:
-
-```bash
-sudo nano /etc/systemd/system/yeastar-sms.service
-```
-
-```ini
-[Unit]
-Description=Yeastar SMS to Telegram
-After=network.target
-
-[Service]
-Type=simple
-User=odmen
-WorkingDirectory=/opt/Yeastar-sms-to-TG
-ExecStart=/opt/Yeastar-sms-to-TG/.venv/bin/python main.py
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-2. Перезагружаем systemd и запускаем сервис:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable yeastar-sms
-sudo systemctl start yeastar-sms
-sudo systemctl status yeastar-sms
-```
-
----
-
-## Просмотр логов
-
-```bash
-journalctl -u yeastar-sms -f
-```
-
----
-
-## Команды systemd
-
-| Команда                              | Описание                         |
-| ------------------------------------ | -------------------------------- |
-| `sudo systemctl restart yeastar-sms` | Перезапуск сервиса               |
-| `sudo systemctl stop yeastar-sms`    | Остановить сервис                |
-| `sudo systemctl disable yeastar-sms` | Отключить автозапуск             |
-| `journalctl -u yeastar-sms -f`       | Смотреть логи в реальном времени |
-
----
