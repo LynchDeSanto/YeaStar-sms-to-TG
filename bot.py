@@ -1,23 +1,17 @@
-import requests
-from config import TG_TOKEN, TG_CHAT
+from telegram_bot import run_telegram_bot
+from sms_api import listen_sms_api
+from config import TG_TOKEN, LOG_FOLDER, PORT_SIM_MAP
 
-def send_sms_to_telegram(sender: str, sim: str, text: str):
-    message = (
-        "📩 Новая SMS\n"
-        f"От: {sender}\n"
-        f"На SIM: {sim}\n"
-        f"Текст: {text}"
-    )
+def sms_callback(sender, gsm_port, content, recvtime):
+    sim_number = PORT_SIM_MAP.get(gsm_port, f"Port {gsm_port}")
+    log_file = f"{LOG_FOLDER}/sms_{gsm_port}.txt"
+    with open(log_file, "a", encoding="utf-8") as f:
+        f.write(f"[{recvtime}] От: {sender} на SIM {sim_number}\n{content}\n\n")
+    print(f"[SMS] От: {sender}, Порт: {gsm_port}, Текст: {content}")
 
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TG_CHAT,
-        "text": message
-    }
-
-    try:
-        r = requests.post(url, json=payload, timeout=10)
-        r.raise_for_status()
-    except Exception as e:
-        print(f"[ERROR] Telegram send failed: {e}")
-
+if __name__ == "__main__":
+    import threading
+    # Запускаем слушателя SMS в отдельном потоке
+    threading.Thread(target=listen_sms_api, args=(sms_callback,), daemon=True).start()
+    # Запускаем Telegram-бота
+    run_telegram_bot(TG_TOKEN)
