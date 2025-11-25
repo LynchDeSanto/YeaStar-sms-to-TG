@@ -3,43 +3,41 @@ import urllib.parse
 import requests
 import datetime
 import os
+from dotenv import load_dotenv
 
 # ================== НАСТРОЙКИ ==================
-ADDRESS = os.getenv("AMI_ADDRESS")
-PORT = int(os.getenv("AMI_PORT"))
-USER = os.getenv("AMI_USER")
-PASSWORD = os.getenv("AMI_PASSWORD")
+load_dotenv()
+
+ADDRESS = os.getenv("YEASTAR_ADDRESS")
+PORT = 5038
+USER = os.getenv("API_USER")
+PASSWORD = os.getenv("API_PASSWORD")
 
 TELEGRAM_TOKEN = os.getenv("TG_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TG_CHAT")
 
-# Папка для логов
 LOG_FOLDER = "logs"
 os.makedirs(LOG_FOLDER, exist_ok=True)
 
-# Словарь соответствия GsmSpan и номера SIM
+# Словарь GsmSpan → номер SIM
 PORT_SIM_MAP = {
-    "GsmSpan-number": "Phone_number",  # GsmSpan 2 → номер твоей SIM
-    # Добавляй новые порты при необходимости
+    "2": "+78005553535",
 }
 # ================================================
 
 def decode_sms(text):
-    """Декодирует URL-encoded UTF-8 SMS и убирает BOM, если есть"""
     decoded = urllib.parse.unquote_plus(text)
     if decoded.startswith("\ufeff"):
         decoded = decoded.replace("\ufeff", "", 1)
     return decoded
 
 def log_sms(message):
-    """Сохраняет SMS в лог-файл"""
     now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = os.path.join(LOG_FOLDER, f"sms_{now}.txt")
     with open(filename, "w", encoding="utf-8") as f:
         f.write(message + "\n")
 
 def send_to_telegram(text):
-    """Отправка текста в Telegram"""
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     try:
         requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text": text}, timeout=5)
@@ -47,7 +45,6 @@ def send_to_telegram(text):
         print("[!] Ошибка отправки в Telegram:", e)
 
 def parse_sms_event(event_text):
-    """Разбор блока события ReceivedSMS"""
     sender = ""
     port = ""
     content_raw = ""
@@ -69,7 +66,6 @@ def parse_sms_event(event_text):
         log_sms(message)
 
 def listen_sms_ami():
-    """Основной цикл прослушки AMI"""
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((ADDRESS, PORT))
     banner = s.recv(1024).decode(errors="ignore")
