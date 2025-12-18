@@ -31,10 +31,12 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. **Создаем файл `.env`**
+3. **Создаем файл `.env`**  
+
+Пример данных:
 
 ```env
-YEASTAR_ADDRESS=10.168.66.108
+YEASTAR_ADDRESS=192.168.88.20
 API_USER=apiuser
 API_PASSWORD=apipass
 TG_TOKEN=123456789:ABC-XYZ
