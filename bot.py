@@ -1,11 +1,23 @@
-import asyncio
-from telegram import Bot
+import requests
 from config import TG_TOKEN, TG_CHAT
 
-bot = Bot(token=TG_TOKEN)
+def send_sms_to_telegram(sender: str, sim: str, text: str):
+    message = (
+        "📩 Новая SMS\n"
+        f"От: {sender}\n"
+        f"На SIM: {sim}\n"
+        f"Текст: {text}"
+    )
 
-def send_to_telegram(message: str):
+    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TG_CHAT,
+        "text": message
+    }
+
     try:
-        asyncio.run(bot.send_message(chat_id=TG_CHAT, text=message))
+        r = requests.post(url, json=payload, timeout=10)
+        r.raise_for_status()
     except Exception as e:
-        print(f"[!] Ошибка отправки в Telegram: {e}")
+        print(f"[ERROR] Telegram send failed: {e}")
+

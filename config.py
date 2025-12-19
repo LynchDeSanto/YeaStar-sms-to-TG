@@ -13,8 +13,8 @@ API_PASSWORD = os.getenv("API_PASSWORD")
 TG_TOKEN = os.getenv("TG_TOKEN")
 TG_CHAT = os.getenv("TG_CHAT")
 
-LOG_FOLDER = "logs"
-os.makedirs(LOG_FOLDER, exist_ok=True)
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # Dictionary GsmSpan → SIM number
 PORT_SIM_MAP = {
