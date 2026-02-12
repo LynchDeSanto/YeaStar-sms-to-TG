@@ -13,12 +13,14 @@ API_PASSWORD = os.getenv("API_PASSWORD")
 TG_TOKEN = os.getenv("TG_TOKEN")
 TG_CHAT = os.getenv("TG_CHAT")
 
-# Логи
-LOG_FOLDER = "logs"
-import os
-os.makedirs(LOG_FOLDER, exist_ok=True)
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
 
-# Словарь GsmSpan → номер SIM (для идентификации порта)
-PORT_SIM_MAP = {
-    "2": "+78005553535",
-}
+# Dictionary GsmSpan → SIM number
+PORT_SIM_MAP = {}
+for key, value in os.environ.items():
+    if key.startswith("PORT_SIM_MAP_"):
+        port = key.replace("PORT_SIM_MAP_", "")
+        PORT_SIM_MAP[port] = value
+
+print(PORT_SIM_MAP)
