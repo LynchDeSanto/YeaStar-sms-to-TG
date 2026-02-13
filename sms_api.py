@@ -1,10 +1,8 @@
-from collections import defaultdict
 from threading import Lock
 import socket
 import time
 import os
 from urllib.parse import unquote_plus
-from datetime import datetime
 
 from config import (
     YEASTAR_ADDRESS,
@@ -43,7 +41,7 @@ def handle_sms_event(event_text: str):
 
     sender = data.get("Sender", "Unknown")
     gsm_span = data.get("GsmSpan", "Unknown")
-    msg_ref = data.get("MsgRef")
+    msg_ref = data.get("MsgRef") or data.get("ID")
     index = data.get("Index")
     total = data.get("Total")
 
